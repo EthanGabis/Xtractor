@@ -1,6 +1,18 @@
 # Xtractor
 
-Turn X/Twitter threads and web articles into clean Markdown using your real logged-in browser session and Grok — no API required.
+**Turn X threads and web articles into clean Markdown using your real logged-in browser session and Grok — no API required.**
+
+If your bookmarks are full of threads you never revisit, Xtractor is for you.
+
+It gives you a simple bridge between discovery and reuse:
+- find something useful on X or the web
+- run one command
+- save it as local Markdown
+- feed it back into OpenClaw, Claude, or your own knowledge system later
+
+This is not an API client.
+This is not anonymous scraping.
+This is a practical knowledge-capture workflow for people who already live in the browser and want their agents to remember what mattered.
 
 ## Why this matters
 
@@ -122,7 +134,7 @@ Edit `xtractor.config.json` if you want to change:
 - default mode
 - default output directory
 - Grok URL order
-- polling interval
+- poll interval
 - max polls
 
 Keep it simple. The example config is enough for most users.

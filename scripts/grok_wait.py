@@ -62,11 +62,17 @@ const {{ chromium }} = require('playwright');
     for (let i = 0; i < {max_polls}; i++) {{
       await page.waitForTimeout({poll_ms});
       const body = await page.locator('body').innerText().catch(()=> '');
+      const articles = await page.locator('article').allInnerTexts().catch(() => []);
       const hasPartial = partialMarkers.some(m => body.includes(m));
       const signedOut = /sign in|sign up/i.test(body) && !/grok/i.test(body);
       if (signedOut) throw new Error('Lost Grok/X login state while waiting for answer.');
-      if (!hasPartial && body === last && body.length > 200) stable += 1; else stable = 0;
-      last = body;
+
+      let candidate = articles && articles.length ? articles[articles.length - 1] : body;
+      candidate = (candidate || '').trim();
+      if (!candidate || candidate.length < 80) candidate = body;
+
+      if (!hasPartial && candidate === last && candidate.length > 200) stable += 1; else stable = 0;
+      last = candidate;
       if (!hasPartial && stable >= 2) break;
     }}
 
