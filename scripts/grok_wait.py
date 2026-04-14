@@ -44,36 +44,51 @@ const {{ chromium }} = require('playwright');
     }}
     if (!opened) throw new Error('Could not open Grok in the current browser session.');
 
-    await page.waitForTimeout(5000);
-    const bodyBefore = await page.locator('body').innerText().catch(()=> '');
-    if (/sign in|sign up/i.test(bodyBefore) && !/grok/i.test(bodyBefore)) {{
-      throw new Error('Grok/X appears to be signed out in the debug Chrome session.');
+    await page.waitForTimeout(6000);
+    const bodyBefore = (await page.locator('body').innerText().catch(()=> '')).trim();
+    if ((/sign in|sign up/i.test(bodyBefore) && !/grok/i.test(bodyBefore)) || /create your account|log in to x/i.test(bodyBefore)) {{
+      throw new Error('Grok/X appears to be signed out in the debug Chrome session before prompt submission.');
     }}
 
     const textbox = page.locator('textarea, div[contenteditable="true"], input[type="text"]').first();
-    await textbox.click({{ timeout: 10000 }});
+    await textbox.click({{ timeout: 15000 }});
     await textbox.fill({json.dumps(prompt)}).catch(async()=>{{
       await page.keyboard.insertText({json.dumps(prompt)});
     }});
     await page.keyboard.press('Enter');
 
     const partialMarkers = ['Analyzing', 'Reading thread', 'Extracting thread', 'Quick Answer', 'Thinking', 'Get notified when Grok finishes answering'];
+    const likelyAnswerMarkers = ['## ', '# ', 'Key Takeaways', 'Why It Matters', 'Action Items', 'Source'];
     let stable = 0;
+    let signedOutHits = 0;
+    let seenSubstantiveOutput = false;
+
     for (let i = 0; i < {max_polls}; i++) {{
       await page.waitForTimeout({poll_ms});
-      const body = await page.locator('body').innerText().catch(()=> '');
+      const body = (await page.locator('body').innerText().catch(()=> '')).trim();
       const articles = await page.locator('article').allInnerTexts().catch(() => []);
       const hasPartial = partialMarkers.some(m => body.includes(m));
-      const signedOut = /sign in|sign up/i.test(body) && !/grok/i.test(body);
-      if (signedOut) throw new Error('Lost Grok/X login state while waiting for answer.');
+      const maybeSignedOut = ((/sign in|sign up/i.test(body) && !/grok/i.test(body)) || /create your account|log in to x/i.test(body));
 
       let candidate = articles && articles.length ? articles[articles.length - 1] : body;
       candidate = (candidate || '').trim();
       if (!candidate || candidate.length < 80) candidate = body;
 
+      if (candidate.length > 300 || likelyAnswerMarkers.some(m => candidate.includes(m))) {{
+        seenSubstantiveOutput = true;
+      }}
+
+      if (maybeSignedOut && !seenSubstantiveOutput) signedOutHits += 1;
+      else signedOutHits = 0;
+
+      if (signedOutHits >= 3) {{
+        throw new Error('Grok/X appears to be signed out while waiting for answer.');
+      }}
+
       if (!hasPartial && candidate === last && candidate.length > 200) stable += 1; else stable = 0;
       last = candidate;
-      if (!hasPartial && stable >= 2) break;
+
+      if (seenSubstantiveOutput && !hasPartial && stable >= 3) break;
     }}
 
     if (!last || last.length < 80) throw new Error('Did not capture a usable answer from Grok.');
