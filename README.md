@@ -2,105 +2,56 @@
 
 Turn X/Twitter threads and web articles into clean Markdown using a real logged-in browser session and Grok — no API required.
 
-## What this is
+## What this does
 
-Xtractor solves a simple problem:
+Xtractor gives agents and humans a reproducible way to preserve useful content from X and the web as local Markdown files.
 
-you find high-signal stuff on X or random articles every day, but that knowledge stays trapped in the feed or browser.
+The core flow is simple:
+1. launch Chrome with remote debugging enabled
+2. log into X / Grok in that Chrome profile
+3. attach safely to the live browser session
+4. open a **dedicated Grok tab**
+5. send a prompt plus the source URL
+6. wait for a stable final answer
+7. save the result as a `.md` file on disk
 
-This repo gives you a reproducible flow to:
-- open a real Chrome session with automation enabled
-- use Grok inside that session to read a thread/article
-- send an exact prompt plus the source link
-- wait for the final answer
-- save the result as a clean `.md` file on your Mac
+This is meant to be practical, not magical. It uses your real browser session, not the X API.
 
 ## Why this exists
 
-Every developer, founder, operator, and AI builder finds useful stuff on Twitter/X constantly.
+Every developer, founder, operator, and AI builder finds useful stuff on X constantly.
 
 The hard part is not discovery.
 The hard part is capture.
 
 Bookmarks rot. Threads disappear. Copy-paste is annoying. Agents cannot use information you never preserve.
 
-Xtractor turns social content into local Markdown files so OpenClaw, Claude, or your own note system can actually use it.
+Xtractor turns social content into local Markdown files so OpenClaw, Claude, and other assistants can actually use it later.
 
-## Two supported scenarios
+## Supported scenarios
 
-### 1. Claude in Chrome
-Use this when you already work inside Claude / Grok / browser tabs manually and want a repeatable way to export threads or articles.
+### 1. Claude / assistant + browser
+Use this when you are already working manually in a browser and want a repeatable export flow.
 
 ### 2. OpenClaw + browser automation
-Use this when OpenClaw is driving the browser for you and you want the extraction flow to be reproducible by an agent.
+Use this when OpenClaw is orchestrating the browser and needs a documented, safe extraction workflow.
 
-In both cases the core idea is the same:
-- the user launches Chrome with automation enabled
-- the browser is logged into X / Grok
-- the tool opens Grok
-- sends a prompt + the URL
-- waits for the final answer
-- writes Markdown to disk
+In both cases the same wiring matters:
+- Chrome launched with remote debugging
+- logged-in X / Grok session
+- safe browser attachment
+- dedicated Grok tab
+- prompt + URL
+- stable answer capture
+- Markdown save
 
-## Quick start
+## Safety guarantees
 
-### Step 1: launch Chrome with remote debugging
-
-```bash
-"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
-  --remote-debugging-port=9222 \
-  --user-data-dir=/tmp/chrome-debug-xtractor
-```
-
-Log into X / Grok in that Chrome window.
-
-### Step 2: run extraction
-
-```bash
-./scripts/extract_to_md.sh "https://x.com/irabukht/status/2043666224358556159?s=46"
-```
-
-That will:
-1. verify the Chrome debug session exists
-2. open Grok in your logged-in session
-3. send the default prompt plus the URL
-4. wait for the final answer
-5. save the result as Markdown
-
-## Repo layout
-
-```text
-Xtractor/
-├── README.md
-├── prompts/
-│   ├── value-extract.md
-│   ├── verbatim-extract.md
-│   └── article-extract.md
-├── scripts/
-│   ├── check_chrome_debug.py
-│   ├── grok_wait.py
-│   ├── save_markdown.py
-│   └── extract_to_md.sh
-├── examples/
-│   ├── sample-thread-output.md
-│   └── sample-article-output.md
-└── docs/
-    ├── setup.md
-    ├── openclaw.md
-    ├── claude.md
-    └── troubleshooting.md
-```
-
-## Exact default prompt
-
-See `prompts/value-extract.md`.
-
-This is the default high-value prompt:
-- extract content
-- preserve meaning
-- produce clean Markdown
-- add takeaways and action items
-- keep the source link
+Xtractor is designed to be safer for real user sessions:
+- it opens a **new dedicated tab** instead of hijacking your first tab
+- it closes only that tab when finished
+- it does **not** intentionally close your whole browser session
+- it fails clearly if the debug browser is missing or Grok is signed out
 
 ## Requirements
 
@@ -115,31 +66,107 @@ This is the default high-value prompt:
 ```bash
 npm install
 npx playwright install chromium
+chmod +x scripts/*.py scripts/*.sh
 ```
 
-## Important notes
+## Quick start
 
-- this is **not** using the X API
-- this is **not** scraping anonymously
-- this depends on your real logged-in browser session
-- if Grok cannot read the source fully, the output should say so explicitly
+### 1. Launch Chrome with remote debugging
 
-## For OpenClaw users
+```bash
+"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+  --remote-debugging-port=9222 \
+  --user-data-dir=/tmp/chrome-debug-xtractor
+```
 
-If OpenClaw is driving the browser, it needs a browser automation path (for example Chrome remote debugging plus a script like the ones in this repo). The agent should:
-- attach to Chrome
-- open Grok
-- send the prompt
-- wait for a stable answer
-- save the answer into `.md`
+Use that Chrome window to log into X / Grok.
 
-See `docs/openclaw.md`.
+### 2. Verify the session
 
-## For Claude/browser users
+```bash
+python3 scripts/check_chrome_debug.py
+```
 
-If you are running the browser yourself and using Claude or another assistant to orchestrate it, the same remote-debugging setup works. The important part is that the browser session is real, logged in, and accessible.
+### 3. Run extraction
+
+```bash
+./scripts/extract_to_md.sh "https://x.com/irabukht/status/2043666224358556159?s=46"
+```
+
+That will:
+1. verify the debug session exists
+2. load the chosen prompt template
+3. open Grok in a dedicated tab
+4. send the prompt plus the URL
+5. wait for the final answer
+6. save the Markdown file and print its path
+
+### Optional modes
+
+```bash
+./scripts/extract_to_md.sh "https://x.com/..." value
+./scripts/extract_to_md.sh "https://x.com/..." verbatim
+./scripts/extract_to_md.sh "https://example.com/article" article
+```
+
+## Repo layout
+
+```text
+Xtractor/
+├── README.md
+├── LICENSE
+├── skill/
+│   └── SKILL.md
+├── prompts/
+│   ├── value-extract.md
+│   ├── verbatim-extract.md
+│   └── article-extract.md
+├── scripts/
+│   ├── check_chrome_debug.py
+│   ├── template_prompt.py
+│   ├── grok_wait.py
+│   ├── save_markdown.py
+│   └── extract_to_md.sh
+├── examples/
+│   ├── sample-thread-output.md
+│   └── sample-article-output.md
+└── docs/
+    ├── setup.md
+    ├── openclaw.md
+    ├── claude.md
+    └── troubleshooting.md
+```
+
+## Prompt templates
+
+- `prompts/value-extract.md` → best default for useful Markdown with takeaways and action items
+- `prompts/verbatim-extract.md` → best for archival / near-verbatim extraction
+- `prompts/article-extract.md` → best for normal web articles
+
+## OpenClaw
+
+If OpenClaw is driving the browser, use the skill in `skill/SKILL.md` and the docs in `docs/openclaw.md`.
+
+The agent should:
+- verify the Chrome debug session
+- attach safely
+- open a new Grok tab
+- send prompt + URL
+- wait for stable output
+- save to Markdown
+
+## Claude / assistant users
+
+If a browser-aware assistant is orchestrating the flow, the same setup still works.
 
 See `docs/claude.md`.
+
+## Limitations
+
+- depends on a real logged-in browser session
+- depends on Grok availability and page structure
+- the final output quality still depends on Grok reading the source correctly
+- some pages may still be partial or blocked, and the output should say so when that happens
 
 ## Why Markdown
 

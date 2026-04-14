@@ -10,24 +10,43 @@ Run:
   --user-data-dir=/tmp/chrome-debug-xtractor
 ```
 
+Then verify:
+
+```bash
+python3 scripts/check_chrome_debug.py
+```
+
 ## Grok shows sign-in page
 
 Make sure the debug Chrome profile is logged into X / Grok.
 
 ## Output is partial
 
-Do not capture while Grok still shows states like:
+Do not trust partial states like:
 - Analyzing
 - Reading thread
 - Thinking
 - Quick Answer
 
-Wait longer and capture only the stable final output.
+Wait longer and capture only a stable final output.
 
 ## X thread does not load properly
 
 Open the link manually in the debug Chrome profile first, then rerun extraction.
 
+## The script opened or changed the wrong tab
+
+It should not. Current behavior is to open a new dedicated tab. If that does not happen, treat it as a bug.
+
+## The script closed my browser
+
+It should not. Current behavior is to close only the dedicated Grok tab. If the full browser closes, treat it as a bug.
+
 ## Markdown output looks ugly
 
-Switch prompt templates or post-process the result with `save_markdown.py`.
+Try another prompt mode:
+
+```bash
+./scripts/extract_to_md.sh "<url>" verbatim
+./scripts/extract_to_md.sh "<url>" article
+```

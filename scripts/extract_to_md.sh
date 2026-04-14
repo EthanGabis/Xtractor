@@ -11,7 +11,7 @@ if [[ -z "$URL" ]]; then
   exit 2
 fi
 
-python3 "$ROOT/scripts/check_chrome_debug.py"
+python3 "$ROOT/scripts/check_chrome_debug.py" >/dev/null
 
 case "$MODE" in
   value) TEMPLATE="$ROOT/prompts/value-extract.md" ;;
@@ -20,10 +20,11 @@ case "$MODE" in
   *) echo "Unknown mode: $MODE" >&2; exit 2 ;;
 esac
 
-PROMPT="$(sed "s#{{URL}}#$URL#g" "$TEMPLATE")"
+PROMPT="$(python3 "$ROOT/scripts/template_prompt.py" "$TEMPLATE" "$URL")"
 RAW_OUTPUT="$(python3 "$ROOT/scripts/grok_wait.py" "$PROMPT")"
 TITLE="$(printf '%s\n' "$RAW_OUTPUT" | head -n 1 | sed 's/^# *//')"
 if [[ -z "$TITLE" ]]; then
   TITLE="xtractor-output"
 fi
-printf '%s\n' "$RAW_OUTPUT" | python3 "$ROOT/scripts/save_markdown.py" "$TITLE" "$OUTDIR"
+SAVED_PATH="$(printf '%s\n' "$RAW_OUTPUT" | python3 "$ROOT/scripts/save_markdown.py" "$TITLE" "$OUTDIR")"
+echo "$SAVED_PATH"

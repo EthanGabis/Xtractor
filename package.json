@@ -1,12 +1,13 @@
 {
   "name": "xtractor",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "Turn X/Twitter threads and web articles into clean Markdown using a real logged-in browser session and Grok — no API required.",
   "dependencies": {
     "playwright": "^1.58.2"
   },
   "scripts": {
-    "install:browsers": "playwright install chromium"
+    "install:browsers": "playwright install chromium",
+    "check": "python3 scripts/check_chrome_debug.py"
   }
 }

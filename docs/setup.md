@@ -1,6 +1,10 @@
 # Setup
 
-## 1. Launch Chrome with automation enabled
+## Goal
+
+Create a real browser session that Xtractor can attach to safely.
+
+## 1. Launch Chrome with remote debugging
 
 ```bash
 "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
@@ -8,16 +12,35 @@
   --user-data-dir=/tmp/chrome-debug-xtractor
 ```
 
+Why this matters:
+- it gives the tool a browser automation endpoint
+- it keeps this workflow separate from your normal Chrome profile if you want that
+- it lets the tool attach to the exact browser session you logged into
+
 ## 2. Log into X / Grok
 
-Use that Chrome window and make sure Grok is available in the session.
+Use that Chrome window and make sure Grok is available.
 
-## 3. Run extraction
+## 3. Install dependencies
+
+```bash
+npm install
+npx playwright install chromium
+chmod +x scripts/*.py scripts/*.sh
+```
+
+## 4. Verify the browser session
+
+```bash
+python3 scripts/check_chrome_debug.py
+```
+
+## 5. Run extraction
 
 ```bash
 ./scripts/extract_to_md.sh "https://x.com/..."
 ```
 
-## 4. Check the output path
+## Output
 
-The script prints the final `.md` file path after saving.
+The script prints the saved Markdown file path.
