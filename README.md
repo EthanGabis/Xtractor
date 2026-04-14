@@ -1,57 +1,62 @@
 # Xtractor
 
-Turn X/Twitter threads and web articles into clean Markdown using a real logged-in browser session and Grok — no API required.
+Turn X/Twitter threads and web articles into clean Markdown using your real logged-in browser session and Grok — no API required.
 
-## What this does
+## Why this matters
 
-Xtractor gives agents and humans a reproducible way to preserve useful content from X and the web as local Markdown files.
+Every developer finds useful stuff on X all day:
+- threads with killer prompts
+- growth tactics
+- infra/debugging explanations
+- niche articles you absolutely want later
 
-The core flow is simple:
+The problem is not discovery.
+The problem is capture.
+
+Bookmarks rot. Threads disappear. Agents cannot use information you never preserve.
+
+**Xtractor converts feed knowledge into local Markdown files your agents can actually use later.**
+
+That is the whole point.
+
+## What it actually does
+
+Xtractor uses a real browser session, not an API.
+
+The flow:
 1. launch Chrome with remote debugging enabled
 2. log into X / Grok in that Chrome profile
 3. attach safely to the live browser session
-4. open a **dedicated Grok tab**
-5. send a prompt plus the source URL
+4. open a dedicated Grok tab
+5. send Grok a prompt plus the source URL
 6. wait for a stable final answer
 7. save the result as a `.md` file on disk
 
-This is meant to be practical, not magical. It uses your real browser session, not the X API.
+So instead of bookmarking a thread and losing it forever, you get a real Markdown artifact you can search, store, feed into OpenClaw, or reuse later.
 
-## Why this exists
+## Good fit
 
-Every developer, founder, operator, and AI builder finds useful stuff on X constantly.
-
-The hard part is not discovery.
-The hard part is capture.
-
-Bookmarks rot. Threads disappear. Copy-paste is annoying. Agents cannot use information you never preserve.
-
-Xtractor turns social content into local Markdown files so OpenClaw, Claude, and other assistants can actually use it later.
+Use Xtractor when you want to:
+- export X threads to Markdown
+- preserve useful articles locally
+- build a personal knowledge base from content you discover online
+- feed saved content into OpenClaw, Claude, or future agent workflows
 
 ## Supported scenarios
 
 ### 1. Claude / assistant + browser
-Use this when you are already working manually in a browser and want a repeatable export flow.
+Use this when you already work manually in a browser and want a repeatable export flow.
 
 ### 2. OpenClaw + browser automation
-Use this when OpenClaw is orchestrating the browser and needs a documented, safe extraction workflow.
+Use this when OpenClaw is orchestrating the browser and needs a documented extraction workflow.
 
-In both cases the same wiring matters:
-- Chrome launched with remote debugging
-- logged-in X / Grok session
-- safe browser attachment
-- dedicated Grok tab
-- prompt + URL
-- stable answer capture
-- Markdown save
+## Safety behavior
 
-## Safety guarantees
-
-Xtractor is designed to be safer for real user sessions:
-- it opens a **new dedicated tab** instead of hijacking your first tab
-- it closes only that tab when finished
-- it does **not** intentionally close your whole browser session
-- it fails clearly if the debug browser is missing or Grok is signed out
+Xtractor tries to avoid messing up the user’s live browser session:
+- opens a **new dedicated tab** instead of hijacking the first tab
+- closes only that tab when finished
+- does **not intentionally close the whole browser session**
+- fails clearly if the browser session is missing or Grok is signed out
 
 ## Requirements
 
@@ -67,6 +72,7 @@ Xtractor is designed to be safer for real user sessions:
 npm install
 npx playwright install chromium
 chmod +x scripts/*.py scripts/*.sh
+cp xtractor.config.example.json xtractor.config.json
 ```
 
 ## Quick start
@@ -109,12 +115,25 @@ That will:
 ./scripts/extract_to_md.sh "https://example.com/article" article
 ```
 
+## Config
+
+Edit `xtractor.config.json` if you want to change:
+- Chrome debug URL
+- default mode
+- default output directory
+- Grok URL order
+- polling interval
+- max polls
+
+Keep it simple. The example config is enough for most users.
+
 ## Repo layout
 
 ```text
 Xtractor/
 ├── README.md
 ├── LICENSE
+├── xtractor.config.example.json
 ├── skill/
 │   └── SKILL.md
 ├── prompts/
@@ -123,13 +142,16 @@ Xtractor/
 │   └── article-extract.md
 ├── scripts/
 │   ├── check_chrome_debug.py
+│   ├── load_config.py
 │   ├── template_prompt.py
 │   ├── grok_wait.py
 │   ├── save_markdown.py
 │   └── extract_to_md.sh
 ├── examples/
 │   ├── sample-thread-output.md
-│   └── sample-article-output.md
+│   ├── sample-article-output.md
+│   ├── real-thread-example.md
+│   └── real-article-example.md
 └── docs/
     ├── setup.md
     ├── openclaw.md
@@ -139,9 +161,9 @@ Xtractor/
 
 ## Prompt templates
 
-- `prompts/value-extract.md` → best default for useful Markdown with takeaways and action items
-- `prompts/verbatim-extract.md` → best for archival / near-verbatim extraction
-- `prompts/article-extract.md` → best for normal web articles
+- `prompts/value-extract.md` → default useful Markdown with takeaways and action items
+- `prompts/verbatim-extract.md` → near-verbatim archival extraction
+- `prompts/article-extract.md` → normal web articles
 
 ## OpenClaw
 
@@ -155,28 +177,27 @@ The agent should:
 - wait for stable output
 - save to Markdown
 
-## Claude / assistant users
-
-If a browser-aware assistant is orchestrating the flow, the same setup still works.
-
-See `docs/claude.md`.
-
 ## Limitations
 
-- depends on a real logged-in browser session
-- depends on Grok availability and page structure
-- the final output quality still depends on Grok reading the source correctly
-- some pages may still be partial or blocked, and the output should say so when that happens
+This is practical and useful, but not magic.
+
+It still depends on:
+- a real logged-in browser session
+- Grok availability
+- page/UI stability
+- Grok actually reading the source correctly
+
+When that fails, Xtractor should fail clearly rather than pretend success.
 
 ## Why Markdown
 
-Markdown is the right output because it is:
+Markdown is the right destination because it is:
 - local
 - searchable
 - portable
 - agent-readable
 - git-friendly
-- easy to reuse in notes, repos, and future analysis
+- easy to reuse later
 
 ## Call to action
 

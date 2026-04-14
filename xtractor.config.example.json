@@ -1,0 +1,11 @@
+{
+  "chromeDebugUrl": "http://127.0.0.1:9222",
+  "defaultMode": "value",
+  "defaultOutputDir": "~/Desktop",
+  "grokUrls": [
+    "https://grok.com/",
+    "https://x.com/i/grok"
+  ],
+  "pollIntervalMs": 2000,
+  "maxPolls": 150
+}

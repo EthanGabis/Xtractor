@@ -28,7 +28,7 @@ Do not trust partial states like:
 - Thinking
 - Quick Answer
 
-Wait longer and capture only a stable final output.
+Wait longer and rerun.
 
 ## X thread does not load properly
 
@@ -50,3 +50,7 @@ Try another prompt mode:
 ./scripts/extract_to_md.sh "<url>" verbatim
 ./scripts/extract_to_md.sh "<url>" article
 ```
+
+## Grok answered with UI noise or junk
+
+This can still happen because the workflow depends on a live web UI. If it happens repeatedly, rerun with a cleaner browser state or use a different prompt mode.

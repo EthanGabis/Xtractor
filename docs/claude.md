@@ -1,11 +1,11 @@
-# Claude / browser wiring
+# Claude / assistant wiring
 
-If Claude or another assistant is orchestrating the browser rather than OpenClaw, the same setup still works.
+If Claude or another browser-aware assistant is orchestrating the flow, the same setup still works.
 
 You need:
 - a real Chrome window with remote debugging enabled
 - a logged-in Grok session
-- Playwright available locally
+- Playwright installed locally
 - permission to save files on disk
 
 ## Safe flow
@@ -17,7 +17,8 @@ You need:
 5. Wait for the stable final answer
 6. Save the Markdown file locally
 
-The important thing is not the exact assistant — it is the wiring:
+The important part is not the exact assistant.
+The important part is the wiring:
 - real browser
 - logged-in Grok
 - prompt + link
